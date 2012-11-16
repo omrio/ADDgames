@@ -4,8 +4,7 @@ from utils.singleton import Singleton
 class GamesRepo(Singleton, defaultdict):
 
     def __init__(self):
-#        super(defaultdict, self).__init__(default_factory = lambda : Game())
-        self.default_factory = lambda : Game()
+        super(defaultdict, self).__init__(default_factory = lambda : Game())
 
 
 def parseMessageWithAddressee(messageWithAddressee):
@@ -46,17 +45,6 @@ class Game(object):
             self.displays.append(display)
         else:
             print 'Display', display, 'already added to this game'
-
-
-#    def getActiveController(self):
-#        return self.activeController
-#
-
-#    def startGame(self):
-#        if not self.controllers:
-#            print 'No controllers added to this game'
-#        else:
-#            self.activeController = self.controllers[self.controllersOrder[0]]
 
 
     def handleMessageFromController(self, controllerId, message):

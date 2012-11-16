@@ -1,5 +1,6 @@
 from tornado import websocket
 from server.Game import GamesRepo
+from utils import utils
 
 
 class ControllerWebSocketHandler(websocket.WebSocketHandler):
@@ -14,4 +15,4 @@ class ControllerWebSocketHandler(websocket.WebSocketHandler):
 
     def on_message(self, message):
         self.game.handleMessageFromController(self.controllerId, message)
-        print "Controller %s said: %s" % (self.controllerId, message)
+        print "Controller %s said: %s" % (self.controllerId, utils.formatMessage(message))

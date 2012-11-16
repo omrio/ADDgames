@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<script src="kinetic-v4.0.5.min.js"></script>
+<script>
+    var stage = new Kinetic.Stage({
+        container: 'container',
+        width: 2000,
+        height: 1000
+    });
+
+    var layer = new Kinetic.Layer();
+
+
+    var background = new Kinetic.Rect({
+        x: 1,
+        y: 1,
+        width: 2000,
+        height: 1500,
+        fill: 'black',
+        stroke: 'black',
+        strokeWidth: 4
+    });
+    layer.add(background);
+
+
+    function circleAt(x, y, radius, opacity) {
+        var circle = new Kinetic.Circle({
+            x:x,
+            y:y,
+            radius:radius,
+            fill:'red',
+            opacity: opacity
+        });
+
+        layer.add(circle);
+    }
+
+    function splashAt(centerX, centerY, radius, xDirection, yDirection) {
+        circleAt(centerX, centerY, radius);
+        var nCircles = 10 + Math.floor(Math.random() * 20);
+        for (var c = 0; c < nCircles; c++) {
+            xPos = centerX + (0.4 + Math.pow(Math.random(), 3)) * radius * xDirection * 2;
+            yPos = centerY + (0.4 + Math.pow(Math.random(), 3)) * radius * yDirection * 2;
+            distFromCenter = Math.sqrt(Math.pow(centerX-xPos, 2) + Math.pow(centerY-yPos, 2));
+            r = radius / Math.max(3.0, 10 * Math.random() * distFromCenter / radius);
+            circleAt(xPos, yPos, r, 1.0);
+        }
+    }
+
+    splashAt(300, 200, 50 + 50 * Math.random(), 2 * Math.random() - 1, 2 * Math.random() - 1);
+    stage.add(layer);
+
+</script>
+</body>
+</html>
