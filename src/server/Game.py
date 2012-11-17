@@ -28,17 +28,22 @@ class Game(object):
 
     def __init__(self):
 
-        self.controllers = {}
-        self.controllersOrder = []
         self.displays = []
+        self.controllers = {}
 
 
     def addController(self, controller):
         if controller.controllerId not in self.controllers:
             self.controllers[controller.controllerId] = controller
-            self.controllersOrder.append(controller.controllerId)
         else:
             print 'Controller', controller.controllerId, 'already added to this game'
+
+
+    def removeController(self, controllerId):
+        if controllerId in self.controllers:
+            del self.controllers[controllerId]
+        else:
+            print 'Controller', controllerId, 'was never added to this game'
 
 
     def addDisplay(self, display):
@@ -48,15 +53,11 @@ class Game(object):
             print 'Display', display, 'already added to this game'
 
 
-#    def getActiveController(self):
-#        return self.activeController
-#
-
-#    def startGame(self):
-#        if not self.controllers:
-#            print 'No controllers added to this game'
-#        else:
-#            self.activeController = self.controllers[self.controllersOrder[0]]
+    def removeDisplay(self, display):
+        if display in self.displays:
+            self.displays.remove(display)
+        else:
+            print 'Display', display, 'was never added to this game'
 
 
     def handleMessageFromController(self, controllerId, message):

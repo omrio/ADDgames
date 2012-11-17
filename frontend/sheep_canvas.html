@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<script src="kinetic-v4.0.5.min.js"></script>
+<script>
+    var stage = new Kinetic.Stage({
+        container: 'container',
+        width: 2000,
+        height: 1000
+    });
+
+    var layer = new Kinetic.Layer();
+
+
+    var background = new Kinetic.Rect({
+        x: 1,
+        y: 1,
+        width: 2000,
+        height: 1500,
+        fill: 'black',
+        stroke: 'black',
+        strokeWidth: 4
+    });
+    layer.add(background);
+
+
+    function circleAt(x, y, radius, color) {
+        var circle = new Kinetic.Circle({
+            x:x,
+            y:y,
+            radius:radius,
+            fill:color
+        });
+
+        layer.add(circle);
+    }
+
+    function splashAt(centerX, centerY, radius, xDirection, yDirection, recursionDepth, nCircles, color) {
+        circleAt(centerX, centerY, radius, color);
+        for (var c = 0; c < nCircles; c++) {
+            xPos = centerX + (0.3 + Math.pow(Math.random(), 3)) * radius * xDirection * 2;
+            yPos = centerY + (0.3 + Math.pow(Math.random(), 3)) * radius * yDirection * 2;
+            distFromCenter = Math.sqrt(Math.pow(centerX-xPos, 2) + Math.pow(centerY-yPos, 2));
+            r = radius / Math.max(3.0, 10 * Math.random() * distFromCenter / radius);
+            circleAt(xPos, yPos, r, color);
+            if (recursionDepth > 0) {
+                splashAt(xPos, yPos, r/2 + r * Math.random(), 2 * Math.random() - 1, 2 * Math.random() - 1, recursionDepth - 1, Math.floor(nCircles / 2), color);
+            }
+        }
+    }
+
+    var xPos = 300;
+    var yPos = 200;
+    var nCircles = 10 + Math.floor(Math.random() * 10);
+    var radius = 50 + 50 * Math.random();
+    var xDirection = 2 * Math.random() - 1;
+    var yDirection = 2 * Math.random() - 1;
+    var color = 'red';
+    splashAt(xPos, yPos, radius, xDirection, yDirection, 1, nCircles, color);
+    stage.add(layer);
+
+</script>
+</body>
+</html>
