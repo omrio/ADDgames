@@ -1,0 +1,207 @@
+<html>
+  <head>
+    <style>
+      body {
+        /*overflow: hidden;*/
+      }
+      .area {
+        -webkit-perspective: 1000px;
+        width: 100%;
+        height: 500px;
+        background-color: #ffe;
+        overflow: hidden;
+      }
+    </style>
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script>
+      function doThrow(init_x,init_y,angle_x,angle_y,power,color) {
+        var ball = $('<div class="ball" />');
+        var angle_z = Math.acos(Math.sqrt(Math.max(1 - Math.pow(Math.cos(angle_x),2) - Math.pow(Math.cos(angle_y),2),0)))
+
+        var speed_x = Math.sin(angle_x) * power;
+        var speed_y = Math.sin(angle_y) * power;
+        var speed_z = Math.cos(angle_z - Math.PI / 2) * power * 4;
+
+        if (color) {ball.css('background-color',color)}
+
+        console.log('angle_x:',angle_x,'angle_y',angle_y,'angle_z: ',angle_z)
+        console.log(speed_x,speed_y,speed_z)
+
+        function moveThrow(obj,time,speed_x,speed_y,speed_z,init_x,init_y,w) {
+          var $obj = $(obj);
+          var g = 9.8;
+          var cur_time = (new Date().getTime() - time) / 1000;
+
+          var x = init_x + speed_x * cur_time
+          var y = init_y + (speed_y + (g*cur_time)) * cur_time
+          var z = 1 + speed_z * cur_time
+
+          visible_w = w / z;
+          obj.css('webkitTransform','translateX(' + x + 'px) translateY(' + y + 'px) translateZ(-' + z + 'px)');
+
+          // obj.offset({
+          //   left: x - visible_w /2,
+          //   top: y - visible_w /2
+          // })
+
+          // console.log(cur_time,x,y,z,speed_x,speed_y,speed_z)
+          console.log(x,y,z)
+          // obj.css('border-radius',obj.width()/2)
+
+          // console.log(y, obj.offset().left,obj.offset().top)
+
+          if (cur_time < 10) {
+            setTimeout(function() {moveThrow(obj,time,speed_x,speed_y,speed_z,init_x,init_y,w)},10);
+          }
+        }
+
+        $('.area').append(ball);
+        ball.offset({top:init_y,left:init_x});
+
+        var w = 53
+        ball.width(w);
+        ball.height(w);
+        ball.css('border-radius',ball.width()/2)
+        moveThrow(ball,new Date().getTime(),speed_x,speed_y,speed_z,init_x,init_y,w);
+      }
+    </script>
+    <script>
+      $(document).ready(function() {
+        var vY = -1 * Math.PI / 2;
+        // doThrow(300,300,-1,vY,300);
+        // doThrow(350,300,-1 * Math.sqrt(3) / 2,vY,300);
+        // doThrow(400,300,0,vY,50,'#0F0');
+        // doThrow(600,300,0,0,500);
+        // doThrow(450,300,Math.sqrt(3) / 2,vY,300);
+        // doThrow(200,200,0,vY,90);
+      })
+    </script>
+    <script>
+      var display = new WebSocket('ws://10.0.0.118:8887/60/display');
+      var playerStatus = {}
+
+      display.onmessage = function(e) {
+        var splitPoint = e.data.indexOf(' ')
+        var cid = e.data.substring(0,splitPoint);
+        var chunk_raw = e.data.slice(splitPoint + 1);
+        var chunk = parseChunk(chunk_raw);
+
+        if (!playerStatus[cid]) { playerStatus[cid] = {
+          color: '#' + parseInt(Math.random() * 100 + 156).toString(16) + parseInt(Math.random() * 100 + 156).toString(16) + parseInt(Math.random() * 100 + 156).toString(16),
+          isDown: false
+        }; }
+
+        $.each(chunk,function(i,v) {
+          if (v.type == 1 || v.type == 2) {
+            var x = v.contents.charCodeAt(0)
+            var y = v.contents.charCodeAt(1)
+
+            var tstamp_components = [v.contents.charCodeAt(2),v.contents.charCodeAt(3),v.contents.charCodeAt(4),v.contents.charCodeAt(5)]
+            var tstamp = (tstamp_components[2] << 16) + 
+                         tstamp_components[3]
+
+            var tilt = v.contents.charCodeAt(6)
+            
+            console.log(v.type,x,y,tstamp,tilt)
+
+            var p = playerStatus[cid]
+
+            if (v.type === 1 && !playerStatus[cid].isDown) {
+              p.isDown = true;
+              p.tstamp = tstamp;
+              p.x = x;
+              p.y = y;
+            } else {
+              if (v.type === 2 && playerStatus[cid].isDown) {
+                p.isDown = false;
+                
+                var t = (tstamp - playerStatus[cid].tstamp) / 1000;
+                var dx = x - p.x;
+                var dy = y - p.y;
+                var d = Math.sqrt( Math.pow(dx,2) + Math.pow(dy,2) );
+                var power = Math.min(d / t,2000) / 10;
+
+                var a_x = Math.atan2(dx,-dy)
+                var a_y = (tilt - 10000) * (Math.PI / 2) / 10000 
+
+                var x0 = (p.x / 168) * $('.area').width();
+
+                console.log(t,playerStatus[cid].tstamp,power,a_x,a_y,x0)
+
+                doThrow(x0,100,a_x,a_y,power,p.color);
+
+              }
+            }
+          }
+        })
+      }
+
+      parseChunk = function(c) {
+        var parsedChunk = [],
+            state = 0, // 0=Get type, 1=Get length, 2=Get contents
+            l = 0, // Data bytes counter
+            msg, // Object to be pushed to chunk array
+            contents = [], // Data string
+            isStringMsg;
+
+        $.each(c,function(i,v) {
+          var value = v.charCodeAt(0);
+          var that = this;
+
+          switch(state) {
+            case 0:
+              if (contents.length) {
+                if (isStringMsg) {
+                  msg.contents = contents.join('')
+                } else {
+                  msg.contents = contents;
+                }
+                parsedChunk.push(msg);
+
+                contents = [];
+              }
+
+              msg = { type : value };
+
+              state++;
+              break;
+            case 1:
+              l = value;
+              isStringMsg = ($.inArray(msg.type,that.stringMsgType))
+
+              state++;
+              break;
+            case 2:
+              isStringMsg ? contents.push(v) : contents.push(v.charCodeAt(0));
+
+              l--;
+              if (l === 0) {state = 0;}
+              break;
+          }
+        })
+
+        if (contents.length) {
+          msg.contents = contents.join('');
+          parsedChunk.push(msg);
+
+          contents = [];
+        }
+
+        return parsedChunk;
+      }
+    </script>
+    <style>
+      .ball {
+        width: 32px;
+        height: 32px;
+        background-color: #F00;
+        border-radius: 16px;
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="area">
+    </div>
+  </body>
+</html>

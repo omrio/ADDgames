@@ -4,44 +4,14 @@ var screenWidth = 320;
 var screenHeight = 480;
 var screenRatio = screenWidth / screenHeight;
 
-var tilt;
-
-window.ondevicemotion = function(e) {
-  tilt = event.accelerationIncludingGravity.y
-}
-
-function charsFromVar(v,num_iter) {
-  var a = []
-
-  for (var i = 0; i < num_iter; i++) {
-    a.unshift(v & 65535);
-    v = v >> 16;
-  }
-
-  return a;
-}
-
 document.ontouchstart = function(e) {
   var text = ""
 
   $.each(e.changedTouches,function(i,v) {
     var widthpx = Math.round(v.screenX / screenWidth * 255 * screenRatio);
     var heightpx = Math.round(v.screenY / screenHeight * 255);
-
-    var tstamp = charsFromVar(new Date().getTime(),4);
-    var fTilt = charsFromVar(tilt.toFixed(3)*1000 + 10000,1);
-
-    var msg = String.fromCharCode(widthpx,heightpx);
-
-    $.each(tstamp,function(j,w) {
-      msg += String.fromCharCode(w)
-    });
-
-    $.each(fTilt,function(j,w) {
-      msg += String.fromCharCode(w)
-    });
     
-    ADDC.addMsg(1,7,msg);
+    ADDC.addMsg(1,2,String.fromCharCode());
 
     text += widthpx + " " + heightpx + "<br />"
   })
@@ -57,26 +27,13 @@ document.ontouchend = function(e) {
   $.each(e.changedTouches,function(i,v) {
     var widthpx = Math.round(v.screenX / screenWidth * 255 * screenRatio);
     var heightpx = Math.round(v.screenY / screenHeight * 255);
-
-    var tstamp = charsFromVar(new Date().getTime(),4);
-    var fTilt = charsFromVar(tilt.toFixed(3)*1000 + 10000,1);
-
-    var msg = String.fromCharCode(widthpx,heightpx);
-
-    $.each(tstamp,function(j,w) {
-      msg += String.fromCharCode(w)
-    });
-
-    $.each(fTilt,function(j,w) {
-      msg += String.fromCharCode(w)
-    });
     
-    ADDC.addMsg(2,7,msg);
+    ADDC.addMsg(1,2,String.fromCharCode());
 
     text += widthpx + " " + heightpx + "<br />"
   })
 
-  text += "DONE!<br />" + tilt + "<br><a href='#' onclick='location.reload()'>reload</a><br />" + ADDC.connection.readyState;
+  text += "DONE!<br /><a href='#' onclick='location.reload()'>reload</a><br />";
 
   $('body').html(text);
 }
@@ -117,7 +74,7 @@ ADDController = function(display_ws,controller_id) {
     },
     sendChunk : function() {
       if (obj.connection && obj.connection.readyState == 1 && obj.chunk.length > 0) {
-        obj.connection.send(obj.chunk.join(''));
+        obj.connection.send(controller_id + ' ' + obj.chunk.join(''));
       }
       obj.chunk = [];
     },
@@ -188,6 +145,5 @@ ADDController = function(display_ws,controller_id) {
   return obj;
 }
 var cid = parseInt((Math.random() * 10000) + 1000);
-gameid = 60
-var ADDC = ADDController('ws://10.0.0.118:8887/' + gameid + '/controller/' + cid,cid);
+var ADDC = ADDController('ws://ec2-184-72-215-229.compute-1.amazonaws.com:8888/' + gameid + '/controller/' + cid,cid);
 // var ADDC = ADDController('ws://10.0.0.118:8888/' + gameid + '/controller/' + controller_id, controller_id);
