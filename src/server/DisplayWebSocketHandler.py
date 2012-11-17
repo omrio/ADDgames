@@ -10,7 +10,13 @@ class DisplayWebSocketHandler(websocket.WebSocketHandler):
         self.game.addDisplay(self)
         print 'display initialized with gameId', gameId
 
-    def on_message(self, message):
 
+    def on_message(self, message):
         self.game.handleMessageFromDisplay(message)
         print "Display said: %s" % utils.formatMessage(message)
+
+
+    def on_close(self):
+
+        print 'removing display from game'
+        self.game.removeDisplay(self)

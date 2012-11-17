@@ -13,10 +13,10 @@ def main():
     controllerId = '90210'
 
     displayWS = websocket.WebSocket()
-    displayWS.connect("ws://127.0.0.1:8888/%s/display" % gameId)
+    displayWS.connect("ws://127.0.0.1:8887/%s/display" % gameId)
 
     controllerWS = websocket.WebSocket()
-    controllerWS.connect("ws://127.0.0.1:8888/%s/controller/%s" % (gameId, controllerId))
+    controllerWS.connect("ws://127.0.0.1:8887/%s/controller/%s" % (gameId, controllerId))
 
     displayWS.send('%s show controller welcome screen' % controllerId)
     controllerWS.send('please accept this gesture')

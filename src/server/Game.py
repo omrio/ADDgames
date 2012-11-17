@@ -4,7 +4,8 @@ from utils.singleton import Singleton
 class GamesRepo(Singleton, defaultdict):
 
     def __init__(self):
-        super(defaultdict, self).__init__(default_factory = lambda : Game())
+#        super(defaultdict, self).__init__(default_factory = lambda : Game())
+        self.default_factory = lambda : Game()
 
 
 def parseMessageWithAddressee(messageWithAddressee):
@@ -27,17 +28,22 @@ class Game(object):
 
     def __init__(self):
 
-        self.controllers = {}
-        self.controllersOrder = []
         self.displays = []
+        self.controllers = {}
 
 
     def addController(self, controller):
         if controller.controllerId not in self.controllers:
             self.controllers[controller.controllerId] = controller
-            self.controllersOrder.append(controller.controllerId)
         else:
             print 'Controller', controller.controllerId, 'already added to this game'
+
+
+    def removeController(self, controllerId):
+        if controllerId in self.controllers:
+            del self.controllers[controllerId]
+        else:
+            print 'Controller', controllerId, 'was never added to this game'
 
 
     def addDisplay(self, display):
@@ -45,6 +51,13 @@ class Game(object):
             self.displays.append(display)
         else:
             print 'Display', display, 'already added to this game'
+
+
+    def removeDisplay(self, display):
+        if display in self.displays:
+            self.displays.remove(display)
+        else:
+            print 'Display', display, 'was never added to this game'
 
 
     def handleMessageFromController(self, controllerId, message):

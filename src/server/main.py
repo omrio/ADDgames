@@ -16,7 +16,7 @@ def main():
         (r"/(?P<gameId>[0-9a-fA-F\-]+)/controller/(?P<controllerId>[0-9a-fA-F\-]+)", ControllerWebSocketHandler),
     ])
 
-    application.listen(8888)
+    application.listen(8887)
     tornado.ioloop.IOLoop.instance().start()
 
 
