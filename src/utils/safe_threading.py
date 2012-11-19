@@ -1,4 +1,4 @@
-__author__ = 'daniel'
+__author__ = 'daniel ben zvi'
 from os import getpid
 import sys
 from threading import Lock as OriginalLock
